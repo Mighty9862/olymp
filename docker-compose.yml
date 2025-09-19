@@ -1,0 +1,58 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: newsdb
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: newsdb
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d newsdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - appnet
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # Подключение к БД — указываем хост db (имя сервиса)
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/newsdb
+      SPRING_DATASOURCE_USERNAME: admin
+      SPRING_DATASOURCE_PASSWORD: admin
+
+      # Переопределяем свойства JPA и логирования SQL
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: "true"
+
+      # Секреты: можно заменить значениями в продакшне или перенести в Docker secrets
+      JWT_SECRET: "ThisIsASecureSecretKeyForJWT1234567890123456789012345678901234567890"
+      AES_SECRET: "ThisIsASecureAESKey12345678901234"
+
+      # Порт приложения (можно не указывать, но явно для ясности)
+      SERVER_PORT: "8080"
+    ports:
+      - "8080:8080"
+    networks:
+      - appnet
+
+volumes:
+  postgres_data:
+
+networks:
+  appnet:
+    driver: bridge
