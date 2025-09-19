@@ -44,9 +44,9 @@ services:
       AES_SECRET: "ThisIsASecureAESKey12345678901234"
 
       # Порт приложения (можно не указывать, но явно для ясности)
-      SERVER_PORT: "8080"
+      SERVER_PORT: "8300"
     ports:
-      - "8080:8080"
+      - "8300:8300"
     networks:
       - appnet
 

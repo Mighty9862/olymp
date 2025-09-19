@@ -33,7 +33,7 @@ RUN chown appuser:appgroup /app/app.jar
 USER appuser
 
 # Порт соответствует application.properties (server.port=8080)
-EXPOSE 8080
+EXPOSE 8300
 
 # Позволяем передавать дополнительные опции JVM через переменную окружения
 ENV JAVA_OPTS=""
