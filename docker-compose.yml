@@ -1,0 +1,76 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: newsdb
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: newsdb
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+    ports:
+      - "5433:5433"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d newsdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - appnet
+
+  app:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # Подключение к БД
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/newsdb
+      SPRING_DATASOURCE_USERNAME: admin
+      SPRING_DATASOURCE_PASSWORD: admin
+
+      # JPA настройки
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: "true"
+
+      # Секреты
+      JWT_SECRET: "ThisIsASecureSecretKeyForJWT1234567890123456789012345678901234567890"
+      AES_SECRET: "ThisIsASecureAESKey12345678901234"
+
+      # Директория для загрузок
+      UPLOAD_DIR: "/app/uploads"
+
+      # Порт приложения
+      SERVER_PORT: "8300"
+    ports:
+      - "8300:8300"
+    volumes:
+      # Монтируем директорию для загрузок
+      - uploads_volume:/app/uploads
+    networks:
+      - appnet
+
+  client:
+    build: ./olymp_schools-client-main
+    container_name: frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    networks:
+      - appnet
+    depends_on:
+      - app
+
+volumes:
+  postgres_data:
+  uploads_volume:
+
+networks:
+  appnet:
+    driver: bridge
