@@ -48,11 +48,18 @@ services:
 
       # Порт приложения
       SERVER_PORT: "8300"
+      
+      # SSL настройки
+      SERVER_SSL_ENABLED: "true"
+      SERVER_SSL_KEY_STORE: "/etc/ssl/certificate.key"
+      SERVER_SSL_KEY_STORE_TYPE: "PKCS12"
+      SERVER_SSL_KEY_STORE_PASSWORD: ""
     ports:
       - "8300:8300"
     volumes:
-      # Монтируем директорию для загрузок
+      # Монтируем директорию для загрузок и SSL сертификаты
       - uploads_volume:/app/uploads
+      - ./ssl:/etc/ssl:ro
     networks:
       - appnet
 
@@ -62,6 +69,9 @@ services:
     restart: unless-stopped
     ports:
       - "80:80"
+      - "443:443"
+    volumes:
+      - ./ssl:/etc/nginx/ssl:ro
     networks:
       - appnet
     depends_on:

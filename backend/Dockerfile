@@ -23,8 +23,9 @@ WORKDIR /app
 RUN addgroup -g 1001 -S appgroup && \
     adduser -S appuser -u 1001 -G appgroup
 
-# Создаем директорию для загрузок и даем права
-RUN mkdir -p /app/uploads && chown appuser:appgroup /app/uploads
+# Создаем директории для SSL и загрузок
+RUN mkdir -p /app/uploads /etc/ssl && \
+    chown -R appuser:appgroup /app/uploads /etc/ssl
 
 # Копируем собранный jar из builder stage
 COPY --from=builder --chown=appuser:appgroup /app/target/*.jar app.jar
