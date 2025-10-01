@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
+import java.net.IDN;
 
 @Service
 public class EmailService {
@@ -18,9 +19,25 @@ public class EmailService {
     @Value("${app.frontend.url:http://localhost:3000}")
     private String frontendUrl;
 
+    private String getPunycodeDomain(String url) {
+        try {
+            // Извлекаем протокол и домен
+            String protocol = url.substring(0, url.indexOf("://") + 3);
+            String domain = url.substring(url.indexOf("://") + 3);
+            
+            // Конвертируем домен в Punycode
+            String punycode = IDN.toASCII(domain);
+            
+            return protocol + punycode;
+        } catch (Exception e) {
+            return url; // В случае ошибки возвращаем исходный URL
+        }
+    }
+
     public void sendPasswordResetEmail(String toEmail, String token) {
         try {
-            String resetLink = frontendUrl + "/reset-password?token=" + token;
+            String punycodeDomain = getPunycodeDomain(frontendUrl);
+            String resetLink = punycodeDomain + "/reset-password?token=" + token;
 
             SimpleMailMessage message = new SimpleMailMessage();
             message.setFrom(fromEmail);
