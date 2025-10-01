@@ -51,9 +51,9 @@ services:
       
       # SSL настройки
       SERVER_SSL_ENABLED: "true"
-      SERVER_SSL_KEY_STORE: "/etc/ssl/certificate.key"
-      SERVER_SSL_KEY_STORE_TYPE: "PKCS12"
-      SERVER_SSL_KEY_STORE_PASSWORD: ""
+      SERVER_SSL_CERTIFICATE: "/etc/ssl/certificate.crt"
+      SERVER_SSL_CERTIFICATE_PRIVATE_KEY: "/etc/ssl/certificate.key"
+      SERVER_SSL_TRUST_CERTIFICATE: "/etc/ssl/certificate_ca.crt"
     ports:
       - "8300:8300"
     volumes:
