@@ -45,6 +45,18 @@ public class AdminController {
         return ResponseEntity.ok("ADMIN role removed from " + email);
     }
 
+    @DeleteMapping("/users/{email}")
+    @Operation(summary = "Delete user", description = "Delete user by email")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "204", description = "User successfully deleted"),
+        @ApiResponse(responseCode = "404", description = "User not found"),
+        @ApiResponse(responseCode = "400", description = "Cannot delete the last administrator")
+    })
+    public ResponseEntity<Void> deleteUser(@PathVariable String email) {
+        userService.deleteUser(email);
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping("/export-users")
     @Operation(summary = "Export user data to Excel", description = "Download Excel file with user data in specified format")
     @ApiResponses(value = {

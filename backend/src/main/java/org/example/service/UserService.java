@@ -87,6 +87,15 @@ public class UserService implements UserDetailsService {
         userRepository.save(user);
     }
 
+    public void deleteUser(String email) {
+        User user = findByEmail(email);
+        // Запрещаем удалять последнего администратора
+        if (user.getRole() == Role.ADMIN && userRepository.countByRole(Role.ADMIN) <= 1) {
+            throw new RuntimeException("Cannot delete the last administrator");
+        }
+        userRepository.delete(user);
+    }
+
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         User user = userRepository.findByEmail(email)
