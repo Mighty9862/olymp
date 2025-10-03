@@ -73,6 +73,14 @@ public class User {
     @Column
     private String postalAddress; // Encrypted
 
+    @Column(nullable = false)
+    private LocalDate registrationDate;
+
+    @PrePersist
+    protected void onCreate() {
+        registrationDate = LocalDate.now();
+    }
+
     @ManyToMany
     @JoinTable(
             name = "user_olympiads",

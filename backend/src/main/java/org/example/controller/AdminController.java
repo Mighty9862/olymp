@@ -89,8 +89,10 @@ public class AdminController {
         for (ProfileResponse user : users) {
             Row row = sheet.createRow(rowNum++);
 
-            // Дата экспорта (текущая дата)
-            row.createCell(0).setCellValue(LocalDate.now().format(dateFormatter));
+            // Дата регистрации
+            String registrationDateStr = user.getRegistrationDate() != null ? 
+                user.getRegistrationDate().format(dateFormatter) : LocalDate.now().format(dateFormatter);
+            row.createCell(0).setCellValue(registrationDateStr);
 
             // Порядковый номер
             row.createCell(1).setCellValue(rowNum - 1);

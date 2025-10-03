@@ -28,5 +28,7 @@ public class ProfileResponse {
     private String snils;
     private String postalAddress;
 
+    private LocalDate registrationDate;
+
     private List<OlympiadResponse> selectedOlympiads;
 }

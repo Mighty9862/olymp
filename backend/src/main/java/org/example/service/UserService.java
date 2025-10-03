@@ -126,6 +126,7 @@ public class UserService implements UserDetailsService {
         response.setResidenceSettlement(encryptionUtil.decrypt(user.getResidenceSettlement()));
         response.setSnils(encryptionUtil.decrypt(user.getSnils()));
         response.setPostalAddress(encryptionUtil.decrypt(user.getPostalAddress()));
+        response.setRegistrationDate(user.getRegistrationDate());
 
         response.setSelectedOlympiads(user.getOlympiads().stream().map(o -> {
             OlympiadResponse r = new OlympiadResponse();
