@@ -2,8 +2,23 @@ package org.example.controller;
 
 import org.example.dto.ProfileResponse;
 import org.example.dto.OlympiadResponse;
-import org.example.enums.Role;
-import org.example.service.UserService;
+import org.example.enum            // e-mail
+            row.createCell(12).setCellValue(user.getEmail() != null ? user.getEmail() : "");
+
+            // Регион образовательной организации
+            row.createCell(13).setCellValue(user.getResidenceRegion() != null ? user.getResidenceRegion() : "");
+
+            // Наименование образовательной организации
+            row.createCell(14).setCellValue(user.getEducationalInstitution() != null ? user.getEducationalInstitution() : "");
+
+            // Класс/Курс
+            row.createCell(15).setCellValue(user.getClassCourse() != null ? user.getClassCourse() : "");
+
+            // Логин (используем email)
+            row.createCell(16).setCellValue(user.getEmail() != null ? user.getEmail() : "");
+
+            // Пароль (ставим звездочку *)
+            row.createCell(17).setCellValue("*");g.example.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -69,7 +84,7 @@ public class AdminController {
         Row headerRow = sheet.createRow(0);
         String[] headers = {
                 "Дата", "№", "Фамилия", "Имя", "Отчество", "Дата рождения", "Пол",
-                "СНИЛС", "Место жительства", "Номер телефона", "e-mail",
+                "СНИЛС", "Регион проживания", "Населенный пункт", "Тип населенного пункта", "Номер телефона", "e-mail",
                 "Регион образовательной организации", "Наименование образовательной организации",
                 "Класс/Курс", "Логин", "Пароль", "Выбранные олимпиады"
         };
@@ -119,24 +134,18 @@ public class AdminController {
             // СНИЛС
             row.createCell(7).setCellValue(user.getSnils() != null ? user.getSnils() : "");
 
-            // Место жительства (объединяем регион, населенный пункт и его тип)
-            String residence = "";
-            if (user.getResidenceRegion() != null && user.getResidenceSettlement() != null) {
-                residence = user.getResidenceRegion() + ", " + user.getResidenceSettlement();
-                // Добавляем тип населенного пункта только если он указан и не равен значению по умолчанию
-                if (user.getSettlementType() != null && !user.getSettlementType().isEmpty() && !user.getSettlementType().equals("Не указано")) {
-                    residence += " (" + user.getSettlementType() + ")";
-                }
-            } else if (user.getResidenceRegion() != null) {
-                residence = user.getResidenceRegion();
-            } else if (user.getResidenceSettlement() != null) {
-                residence = user.getResidenceSettlement();
-                // Добавляем тип населенного пункта только если он указан и не равен значению по умолчанию
-                if (user.getSettlementType() != null && !user.getSettlementType().isEmpty() && !user.getSettlementType().equals("Не указано")) {
-                    residence += " (" + user.getSettlementType() + ")";
-                }
-            }
-            row.createCell(8).setCellValue(residence);
+            // Место жительства
+            row.createCell(8).setCellValue(user.getResidenceRegion() != null ? user.getResidenceRegion() : "");
+            
+            // Населенный пункт
+            row.createCell(9).setCellValue(user.getResidenceSettlement() != null ? user.getResidenceSettlement() : "");
+            
+            // Тип населенного пункта
+            row.createCell(10).setCellValue(user.getSettlementType() != null ? user.getSettlementType() : "");
+            
+            // Сдвигаем остальные колонки
+            // Номер телефона
+            row.createCell(11).setCellValue(user.getPhoneNumber() != null ? user.getPhoneNumber() : "");
 
             // Номер телефона
             row.createCell(9).setCellValue(user.getPhoneNumber() != null ? user.getPhoneNumber() : "");
