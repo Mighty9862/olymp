@@ -69,7 +69,7 @@ public class AdminController {
         Row headerRow = sheet.createRow(0);
         String[] headers = {
                 "Дата", "№", "Фамилия", "Имя", "Отчество", "Дата рождения", "Пол",
-                "СНИЛС", "Место жительства", "Номер телефона", "e-mail",
+                "СНИЛС", "Место жительства", "Тип населенного пункта", "Номер телефона", "e-mail",
                 "Регион образовательной организации", "Наименование образовательной организации",
                 "Класс/Курс", "Логин", "Пароль", "Выбранные олимпиады"
         };
@@ -90,8 +90,8 @@ public class AdminController {
             Row row = sheet.createRow(rowNum++);
 
             // Дата регистрации
-            String registrationDateStr = user.getRegistrationDate() != null ? 
-                user.getRegistrationDate().format(dateFormatter) : LocalDate.now().format(dateFormatter);
+            String registrationDateStr = user.getRegistrationDate() != null ?
+                    user.getRegistrationDate().format(dateFormatter) : LocalDate.now().format(dateFormatter);
             row.createCell(0).setCellValue(registrationDateStr);
 
             // Порядковый номер
@@ -119,7 +119,7 @@ public class AdminController {
             // СНИЛС
             row.createCell(7).setCellValue(user.getSnils() != null ? user.getSnils() : "");
 
-            // Место жительства (объединяем регион, тип населенного пункта и населенный пункт)
+            // Место жительства (только регион и населенный пункт, без типа)
             StringBuilder residenceBuilder = new StringBuilder();
             if (user.getResidenceRegion() != null) {
                 residenceBuilder.append(user.getResidenceRegion());
@@ -127,34 +127,34 @@ public class AdminController {
                     if (residenceBuilder.length() > 0) {
                         residenceBuilder.append(", ");
                     }
-                    if (user.getSettlementType() != null && !user.getSettlementType().isEmpty()) {
-                        residenceBuilder.append(user.getSettlementType()).append(" ");
-                    }
                     residenceBuilder.append(user.getResidenceSettlement());
                 }
             }
             row.createCell(8).setCellValue(residenceBuilder.toString());
 
+            // Тип населенного пункта (отдельная колонка)
+            row.createCell(9).setCellValue(user.getSettlementType() != null ? user.getSettlementType() : "");
+
             // Номер телефона
-            row.createCell(9).setCellValue(user.getPhoneNumber() != null ? user.getPhoneNumber() : "");
+            row.createCell(10).setCellValue(user.getPhoneNumber() != null ? user.getPhoneNumber() : "");
 
             // e-mail
-            row.createCell(10).setCellValue(user.getEmail() != null ? user.getEmail() : "");
+            row.createCell(11).setCellValue(user.getEmail() != null ? user.getEmail() : "");
 
             // Регион образовательной организации
-            row.createCell(11).setCellValue(user.getResidenceRegion() != null ? user.getResidenceRegion() : "");
+            row.createCell(12).setCellValue(user.getResidenceRegion() != null ? user.getResidenceRegion() : "");
 
             // Наименование образовательной организации
-            row.createCell(12).setCellValue(user.getEducationalInstitution() != null ? user.getEducationalInstitution() : "");
+            row.createCell(13).setCellValue(user.getEducationalInstitution() != null ? user.getEducationalInstitution() : "");
 
             // Класс/Курс
-            row.createCell(13).setCellValue(user.getClassCourse() != null ? user.getClassCourse() : "");
+            row.createCell(14).setCellValue(user.getClassCourse() != null ? user.getClassCourse() : "");
 
             // Логин (используем email)
-            row.createCell(14).setCellValue(user.getEmail() != null ? user.getEmail() : "");
+            row.createCell(15).setCellValue(user.getEmail() != null ? user.getEmail() : "");
 
             // Пароль (ставим звездочку *)
-            row.createCell(15).setCellValue("*");
+            row.createCell(16).setCellValue("*");
 
             // Выбранные олимпиады
             StringBuilder olympiadInfo = new StringBuilder();
@@ -170,7 +170,7 @@ public class AdminController {
                     olympiadInfo.setLength(olympiadInfo.length() - 2); // Удаляем последний "; "
                 }
             }
-            row.createCell(16).setCellValue(olympiadInfo.toString());
+            row.createCell(17).setCellValue(olympiadInfo.toString());
         }
 
         // Авто-размер колонок
