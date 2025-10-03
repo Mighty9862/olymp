@@ -70,7 +70,8 @@ public class UserService implements UserDetailsService {
         user.setPhoneNumber(encryptionUtil.encrypt(request.getPhoneNumber()));
         user.setResidenceRegion(encryptionUtil.encrypt(request.getResidenceRegion()));
         user.setResidenceSettlement(encryptionUtil.encrypt(request.getResidenceSettlement()));
-        user.setSettlementType(request.getSettlementType());
+        // Устанавливаем значение по умолчанию, если тип населенного пункта не указан
+        user.setSettlementType(request.getSettlementType() != null ? request.getSettlementType() : "Не указано");
         user.setSnils(encryptionUtil.encrypt(request.getSnils()));
         user.setPostalAddress(encryptionUtil.encrypt(request.getPostalAddress()));
 

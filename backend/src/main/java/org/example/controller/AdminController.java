@@ -123,14 +123,16 @@ public class AdminController {
             String residence = "";
             if (user.getResidenceRegion() != null && user.getResidenceSettlement() != null) {
                 residence = user.getResidenceRegion() + ", " + user.getResidenceSettlement();
-                if (user.getSettlementType() != null && !user.getSettlementType().isEmpty()) {
+                // Добавляем тип населенного пункта только если он указан и не равен значению по умолчанию
+                if (user.getSettlementType() != null && !user.getSettlementType().isEmpty() && !user.getSettlementType().equals("Не указано")) {
                     residence += " (" + user.getSettlementType() + ")";
                 }
             } else if (user.getResidenceRegion() != null) {
                 residence = user.getResidenceRegion();
             } else if (user.getResidenceSettlement() != null) {
                 residence = user.getResidenceSettlement();
-                if (user.getSettlementType() != null && !user.getSettlementType().isEmpty()) {
+                // Добавляем тип населенного пункта только если он указан и не равен значению по умолчанию
+                if (user.getSettlementType() != null && !user.getSettlementType().isEmpty() && !user.getSettlementType().equals("Не указано")) {
                     residence += " (" + user.getSettlementType() + ")";
                 }
             }
