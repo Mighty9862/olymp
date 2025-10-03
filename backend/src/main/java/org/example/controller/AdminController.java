@@ -65,11 +65,11 @@ public class AdminController {
         headerStyle.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
         headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
 
-        // Создание заголовков согласно формату (убрали ненужные поля)
+        // Создание заголовков
         Row headerRow = sheet.createRow(0);
         String[] headers = {
                 "Дата", "№", "Фамилия", "Имя", "Отчество", "Дата рождения", "Пол",
-                "СНИЛС", "Регион проживания", "Населенный пункт", "Тип населенного пункта", "Номер телефона", "e-mail",
+                "СНИЛС", "Место жительства", "Номер телефона", "e-mail",
                 "Регион образовательной организации", "Наименование образовательной организации",
                 "Класс/Курс", "Логин", "Пароль", "Выбранные олимпиады"
         };
@@ -97,7 +97,7 @@ public class AdminController {
             // Порядковый номер
             row.createCell(1).setCellValue(rowNum - 1);
 
-            // Фамилия, Имя, Отчество
+            // ФИО
             row.createCell(2).setCellValue(user.getLastName() != null ? user.getLastName() : "");
             row.createCell(3).setCellValue(user.getFirstName() != null ? user.getFirstName() : "");
             row.createCell(4).setCellValue(user.getMiddleName() != null ? user.getMiddleName() : "");
@@ -119,23 +119,26 @@ public class AdminController {
             // СНИЛС
             row.createCell(7).setCellValue(user.getSnils() != null ? user.getSnils() : "");
 
-            // Место жительства
-            row.createCell(8).setCellValue(user.getResidenceRegion() != null ? user.getResidenceRegion() : "");
-            
-            // Населенный пункт
-            row.createCell(9).setCellValue(user.getResidenceSettlement() != null ? user.getResidenceSettlement() : "");
-            
-            // Тип населенного пункта
-            row.createCell(10).setCellValue(user.getSettlementType() != null ? user.getSettlementType() : "");
-            
-            // Сдвигаем остальные колонки
-            // Номер телефона
-            row.createCell(11).setCellValue(user.getPhoneNumber() != null ? user.getPhoneNumber() : "");
+            // Место жительства (объединяем регион, тип населенного пункта и населенный пункт)
+            StringBuilder residenceBuilder = new StringBuilder();
+            if (user.getResidenceRegion() != null) {
+                residenceBuilder.append(user.getResidenceRegion());
+                if (user.getResidenceSettlement() != null) {
+                    if (residenceBuilder.length() > 0) {
+                        residenceBuilder.append(", ");
+                    }
+                    if (user.getSettlementType() != null && !user.getSettlementType().isEmpty()) {
+                        residenceBuilder.append(user.getSettlementType()).append(" ");
+                    }
+                    residenceBuilder.append(user.getResidenceSettlement());
+                }
+            }
+            row.createCell(8).setCellValue(residenceBuilder.toString());
 
             // Номер телефона
             row.createCell(9).setCellValue(user.getPhoneNumber() != null ? user.getPhoneNumber() : "");
 
-            // Email
+            // e-mail
             row.createCell(10).setCellValue(user.getEmail() != null ? user.getEmail() : "");
 
             // Регион образовательной организации
@@ -154,8 +157,8 @@ public class AdminController {
             row.createCell(15).setCellValue("*");
 
             // Выбранные олимпиады
+            StringBuilder olympiadInfo = new StringBuilder();
             if (user.getSelectedOlympiads() != null && !user.getSelectedOlympiads().isEmpty()) {
-                StringBuilder olympiadInfo = new StringBuilder();
                 for (OlympiadResponse olympiad : user.getSelectedOlympiads()) {
                     olympiadInfo.append(olympiad.getName());
                     if (olympiad.getDate() != null) {
@@ -166,10 +169,8 @@ public class AdminController {
                 if (olympiadInfo.length() > 2) {
                     olympiadInfo.setLength(olympiadInfo.length() - 2); // Удаляем последний "; "
                 }
-                row.createCell(16).setCellValue(olympiadInfo.toString());
-            } else {
-                row.createCell(16).setCellValue("");
             }
+            row.createCell(16).setCellValue(olympiadInfo.toString());
         }
 
         // Авто-размер колонок
