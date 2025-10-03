@@ -17,30 +17,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-            // Наименование образовательной организации
-            row.createCell(14).setCellValue(user.getEducationalInstitution() != null ? user.getEducationalInstitution() : "");
-
-            // Класс/Курс
-            row.createCell(15).setCellValue(user.getClassCourse() != null ? user.getClassCourse() : "");
-
-            // Логин (используем email)
-            row.createCell(16).setCellValue(user.getEmail() != null ? user.getEmail() : "");
-
-            // Пароль (ставим звездочку *)
-            row.createCell(17).setCellValue("*");g.example.service.UserService;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.LocalDate;
