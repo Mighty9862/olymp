@@ -47,6 +47,8 @@ public class RegisterRequest {
 
     @NotBlank
     private String residenceSettlement;
+    
+    private String settlementType;
 
     @NotBlank
     private String snils;

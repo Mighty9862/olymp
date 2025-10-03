@@ -68,6 +68,9 @@ public class User {
     private String residenceSettlement; // Encrypted
 
     @Column
+    private String settlementType; // Тип населенного пункта
+
+    @Column
     private String snils; // Encrypted
 
     @Column

@@ -119,14 +119,20 @@ public class AdminController {
             // СНИЛС
             row.createCell(7).setCellValue(user.getSnils() != null ? user.getSnils() : "");
 
-            // Место жительства (объединяем регион и населенный пункт)
+            // Место жительства (объединяем регион, населенный пункт и его тип)
             String residence = "";
             if (user.getResidenceRegion() != null && user.getResidenceSettlement() != null) {
                 residence = user.getResidenceRegion() + ", " + user.getResidenceSettlement();
+                if (user.getSettlementType() != null && !user.getSettlementType().isEmpty()) {
+                    residence += " (" + user.getSettlementType() + ")";
+                }
             } else if (user.getResidenceRegion() != null) {
                 residence = user.getResidenceRegion();
             } else if (user.getResidenceSettlement() != null) {
                 residence = user.getResidenceSettlement();
+                if (user.getSettlementType() != null && !user.getSettlementType().isEmpty()) {
+                    residence += " (" + user.getSettlementType() + ")";
+                }
             }
             row.createCell(8).setCellValue(residence);
 

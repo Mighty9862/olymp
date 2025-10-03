@@ -25,6 +25,7 @@ public class ProfileResponse {
     private String phoneNumber;
     private String residenceRegion;
     private String residenceSettlement;
+    private String settlementType;
     private String snils;
     private String postalAddress;
 
