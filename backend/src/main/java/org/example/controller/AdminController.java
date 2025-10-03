@@ -2,11 +2,20 @@ package org.example.controller;
 
 import org.example.dto.ProfileResponse;
 import org.example.dto.OlympiadResponse;
-import org.example.enum            // e-mail
-            row.createCell(12).setCellValue(user.getEmail() != null ? user.getEmail() : "");
-
-            // Регион образовательной организации
-            row.createCell(13).setCellValue(user.getResidenceRegion() != null ? user.getResidenceRegion() : "");
+import org.example.enums.Role;
+import org.example.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
 
             // Наименование образовательной организации
             row.createCell(14).setCellValue(user.getEducationalInstitution() != null ? user.getEducationalInstitution() : "");
