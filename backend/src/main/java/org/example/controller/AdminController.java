@@ -1,6 +1,7 @@
 package org.example.controller;
 
 import org.example.dto.ProfileResponse;
+import org.example.dto.OlympiadResponse;
 import org.example.enums.Role;
 import org.example.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -70,7 +71,7 @@ public class AdminController {
                 "Дата", "№", "Фамилия", "Имя", "Отчество", "Дата рождения", "Пол",
                 "СНИЛС", "Место жительства", "Номер телефона", "e-mail",
                 "Регион образовательной организации", "Наименование образовательной организации",
-                "Класс/Курс", "Логин", "Пароль"
+                "Класс/Курс", "Логин", "Пароль", "Выбранные олимпиады"
         };
 
         for (int i = 0; i < headers.length; i++) {
@@ -147,6 +148,24 @@ public class AdminController {
 
             // Пароль (ставим звездочку *)
             row.createCell(15).setCellValue("*");
+
+            // Выбранные олимпиады
+            if (user.getSelectedOlympiads() != null && !user.getSelectedOlympiads().isEmpty()) {
+                StringBuilder olympiadInfo = new StringBuilder();
+                for (OlympiadResponse olympiad : user.getSelectedOlympiads()) {
+                    olympiadInfo.append(olympiad.getName());
+                    if (olympiad.getDate() != null) {
+                        olympiadInfo.append(" (").append(olympiad.getDate().format(dateFormatter)).append(")");
+                    }
+                    olympiadInfo.append("; ");
+                }
+                if (olympiadInfo.length() > 2) {
+                    olympiadInfo.setLength(olympiadInfo.length() - 2); // Удаляем последний "; "
+                }
+                row.createCell(16).setCellValue(olympiadInfo.toString());
+            } else {
+                row.createCell(16).setCellValue("");
+            }
         }
 
         // Авто-размер колонок
