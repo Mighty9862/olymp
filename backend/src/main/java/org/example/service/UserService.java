@@ -1,5 +1,3 @@
-// src/main/java/org/example/service/UserService.java
-// (Updated with new method getAllUserProfiles. Replace the entire file with this.)
 package org.example.service;
 
 import org.example.dto.OlympiadResponse;
@@ -126,6 +124,7 @@ public class UserService implements UserDetailsService {
         response.setPhoneNumber(encryptionUtil.decrypt(user.getPhoneNumber()));
         response.setResidenceRegion(encryptionUtil.decrypt(user.getResidenceRegion()));
         response.setResidenceSettlement(encryptionUtil.decrypt(user.getResidenceSettlement()));
+        response.setSettlementType(user.getSettlementType());
         response.setSnils(encryptionUtil.decrypt(user.getSnils()));
         response.setPostalAddress(encryptionUtil.decrypt(user.getPostalAddress()));
         response.setRegistrationDate(user.getRegistrationDate());
