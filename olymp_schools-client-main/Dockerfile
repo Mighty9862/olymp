@@ -17,9 +17,6 @@ COPY nginx-prod.conf /etc/nginx/conf.d/default.conf
 # Копируем собранное приложение
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Копируем страницу обслуживания
-COPY public/maintenance.html /usr/share/nginx/html/maintenance.html
-
 EXPOSE 80
 
 # Устанавливаем права
