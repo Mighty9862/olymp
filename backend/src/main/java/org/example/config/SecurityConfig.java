@@ -34,19 +34,24 @@ public class SecurityConfig {
         this.corsConfigurationSource = corsConfigurationSource;
     }
 
-    // Отдельная конфигурация для Swagger/OpenAPI — требует HTTP Basic
+    /**
+     * Конфигурация безопасности для Swagger UI и OpenAPI.
+     * 
+     * Как получить доступ к Swagger UI:
+     * 1. Откройте https://олимпиада-мосу.рф/swagger-ui/index.html
+     * 2. Введите учетные данные:
+     *    - Логин: admin
+     *    - Пароль: 4t6gRgFc2k
+     */
     @Bean
     @Order(1)
     public SecurityFilterChain swaggerSecurity(HttpSecurity http) throws Exception {
         http
-                .securityMatcher(
-                        "/swagger-ui.html",
-                        "/swagger-ui/**",
-                        "/v3/api-docs",
-                        "/v3/api-docs/**",
-                        "/swagger-resources/**",
-                        "/webjars/**",
-                        "/favicon.ico"
+                .securityMatcher(request -> 
+                    request.getRequestURI().contains("swagger-ui") ||
+                    request.getRequestURI().contains("api-docs") ||
+                    request.getRequestURI().contains("swagger-resources") ||
+                    request.getRequestURI().contains("webjars")
                 )
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
