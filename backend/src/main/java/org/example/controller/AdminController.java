@@ -46,8 +46,8 @@ public class AdminController {
         return ResponseEntity.ok("ADMIN role removed from " + email);
     }
 
-    @GetMapping("/export-users")
-    @Operation(summary = "Export user data to Excel", description = "Download Excel file with user data in specified format")
+    @GetMapping("/export-users-simple")
+    @Operation(summary = "Export user data to Excel with highlights", description = "Users without selected olympiads are highlighted in yellow")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Excel file downloaded")
     })
@@ -57,7 +57,7 @@ public class AdminController {
         Workbook workbook = new XSSFWorkbook();
         Sheet sheet = workbook.createSheet("Users");
 
-        // Стили для заголовков
+        // Стили
         CellStyle headerStyle = workbook.createCellStyle();
         Font headerFont = workbook.createFont();
         headerFont.setBold(true);
@@ -65,7 +65,11 @@ public class AdminController {
         headerStyle.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
         headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
 
-        // Создание заголовков
+        CellStyle highlightStyle = workbook.createCellStyle();
+        highlightStyle.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
+        highlightStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+        // Заголовки
         Row headerRow = sheet.createRow(0);
         String[] headers = {
                 "Дата", "№", "Фамилия", "Имя", "Отчество", "Дата рождения", "Пол",
@@ -80,33 +84,42 @@ public class AdminController {
             cell.setCellStyle(headerStyle);
         }
 
-        // Форматтер для дат
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd.MM.yy");
         DateTimeFormatter birthDateFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
-        // Заполнение данных
         int rowNum = 1;
         for (ProfileResponse user : users) {
             Row row = sheet.createRow(rowNum++);
 
+            boolean hasOlympiads = user.getSelectedOlympiads() != null && !user.getSelectedOlympiads().isEmpty();
+            CellStyle rowStyle = hasOlympiads ? null : highlightStyle;
+
             // Дата регистрации
-            String registrationDateStr = user.getRegistrationDate() != null ?
-                    user.getRegistrationDate().format(dateFormatter) : LocalDate.now().format(dateFormatter);
-            row.createCell(0).setCellValue(registrationDateStr);
+            Cell cell0 = row.createCell(0);
+            cell0.setCellValue(user.getRegistrationDate() != null ? user.getRegistrationDate().format(dateFormatter) : LocalDate.now().format(dateFormatter));
+            if (rowStyle != null) cell0.setCellStyle(rowStyle);
 
             // Порядковый номер
-            row.createCell(1).setCellValue(rowNum - 1);
+            Cell cell1 = row.createCell(1);
+            cell1.setCellValue(rowNum - 1);
+            if (rowStyle != null) cell1.setCellStyle(rowStyle);
 
             // ФИО
-            row.createCell(2).setCellValue(user.getLastName() != null ? user.getLastName() : "");
-            row.createCell(3).setCellValue(user.getFirstName() != null ? user.getFirstName() : "");
-            row.createCell(4).setCellValue(user.getMiddleName() != null ? user.getMiddleName() : "");
+            Cell cell2 = row.createCell(2);
+            cell2.setCellValue(user.getLastName() != null ? user.getLastName() : "");
+            Cell cell3 = row.createCell(3);
+            cell3.setCellValue(user.getFirstName() != null ? user.getFirstName() : "");
+            Cell cell4 = row.createCell(4);
+            cell4.setCellValue(user.getMiddleName() != null ? user.getMiddleName() : "");
+            if (rowStyle != null) { cell2.setCellStyle(rowStyle); cell3.setCellStyle(rowStyle); cell4.setCellStyle(rowStyle); }
 
             // Дата рождения
-            String birthDateStr = user.getBirthDate() != null ? user.getBirthDate().format(birthDateFormatter) : "";
-            row.createCell(5).setCellValue(birthDateStr);
+            Cell cell5 = row.createCell(5);
+            cell5.setCellValue(user.getBirthDate() != null ? user.getBirthDate().format(birthDateFormatter) : "");
+            if (rowStyle != null) cell5.setCellStyle(rowStyle);
 
-            // Пол (преобразуем в "м"/"ж")
+            // Пол
+            Cell cell6 = row.createCell(6);
             String genderStr = "";
             if (user.getGender() != null) {
                 switch (user.getGender()) {
@@ -114,51 +127,68 @@ public class AdminController {
                     case FEMALE -> genderStr = "ж";
                 }
             }
-            row.createCell(6).setCellValue(genderStr);
+            cell6.setCellValue(genderStr);
+            if (rowStyle != null) cell6.setCellStyle(rowStyle);
 
             // СНИЛС
-            row.createCell(7).setCellValue(user.getSnils() != null ? user.getSnils() : "");
+            Cell cell7 = row.createCell(7);
+            cell7.setCellValue(user.getSnils() != null ? user.getSnils() : "");
+            if (rowStyle != null) cell7.setCellStyle(rowStyle);
 
-            // Место жительства (только регион и населенный пункт, без типа)
+            // Место жительства
+            Cell cell8 = row.createCell(8);
             StringBuilder residenceBuilder = new StringBuilder();
             if (user.getResidenceRegion() != null) {
                 residenceBuilder.append(user.getResidenceRegion());
                 if (user.getResidenceSettlement() != null) {
-                    if (residenceBuilder.length() > 0) {
-                        residenceBuilder.append(", ");
-                    }
+                    if (residenceBuilder.length() > 0) residenceBuilder.append(", ");
                     residenceBuilder.append(user.getResidenceSettlement());
                 }
             }
-            row.createCell(8).setCellValue(residenceBuilder.toString());
+            cell8.setCellValue(residenceBuilder.toString());
+            if (rowStyle != null) cell8.setCellStyle(rowStyle);
 
-            // Тип населенного пункта (отдельная колонка)
-            row.createCell(9).setCellValue(user.getSettlementType() != null ? user.getSettlementType() : "");
+            // Тип населенного пункта
+            Cell cell9 = row.createCell(9);
+            cell9.setCellValue(user.getSettlementType() != null ? user.getSettlementType() : "");
+            if (rowStyle != null) cell9.setCellStyle(rowStyle);
 
-            // Номер телефона
-            row.createCell(10).setCellValue(user.getPhoneNumber() != null ? user.getPhoneNumber() : "");
-
-            // e-mail
-            row.createCell(11).setCellValue(user.getEmail() != null ? user.getEmail() : "");
+            // Телефон и e-mail
+            Cell cell10 = row.createCell(10);
+            cell10.setCellValue(user.getPhoneNumber() != null ? user.getPhoneNumber() : "");
+            Cell cell11 = row.createCell(11);
+            cell11.setCellValue(user.getEmail() != null ? user.getEmail() : "");
+            if (rowStyle != null) { cell10.setCellStyle(rowStyle); cell11.setCellStyle(rowStyle); }
 
             // Регион образовательной организации
-            row.createCell(12).setCellValue(user.getResidenceRegion() != null ? user.getResidenceRegion() : "");
+            Cell cell12 = row.createCell(12);
+            cell12.setCellValue(user.getResidenceRegion() != null ? user.getResidenceRegion() : "");
+            if (rowStyle != null) cell12.setCellStyle(rowStyle);
 
             // Наименование образовательной организации
-            row.createCell(13).setCellValue(user.getEducationalInstitution() != null ? user.getEducationalInstitution() : "");
+            Cell cell13 = row.createCell(13);
+            cell13.setCellValue(user.getEducationalInstitution() != null ? user.getEducationalInstitution() : "");
+            if (rowStyle != null) cell13.setCellStyle(rowStyle);
 
             // Класс/Курс
-            row.createCell(14).setCellValue(user.getClassCourse() != null ? user.getClassCourse() : "");
+            Cell cell14 = row.createCell(14);
+            cell14.setCellValue(user.getClassCourse() != null ? user.getClassCourse() : "");
+            if (rowStyle != null) cell14.setCellStyle(rowStyle);
 
-            // Логин (используем email)
-            row.createCell(15).setCellValue(user.getEmail() != null ? user.getEmail() : "");
+            // Логин
+            Cell cell15 = row.createCell(15);
+            cell15.setCellValue(user.getEmail() != null ? user.getEmail() : "");
+            if (rowStyle != null) cell15.setCellStyle(rowStyle);
 
-            // Пароль (ставим звездочку *)
-            row.createCell(16).setCellValue("*");
+            // Пароль
+            Cell cell16 = row.createCell(16);
+            cell16.setCellValue("*");
+            if (rowStyle != null) cell16.setCellStyle(rowStyle);
 
             // Выбранные олимпиады
+            Cell cell17 = row.createCell(17);
             StringBuilder olympiadInfo = new StringBuilder();
-            if (user.getSelectedOlympiads() != null && !user.getSelectedOlympiads().isEmpty()) {
+            if (hasOlympiads) {
                 for (OlympiadResponse olympiad : user.getSelectedOlympiads()) {
                     olympiadInfo.append(olympiad.getName());
                     if (olympiad.getDate() != null) {
@@ -166,27 +196,109 @@ public class AdminController {
                     }
                     olympiadInfo.append("; ");
                 }
-                if (olympiadInfo.length() > 2) {
-                    olympiadInfo.setLength(olympiadInfo.length() - 2); // Удаляем последний "; "
-                }
+                if (olympiadInfo.length() > 2) olympiadInfo.setLength(olympiadInfo.length() - 2);
             }
-            row.createCell(17).setCellValue(olympiadInfo.toString());
+            cell17.setCellValue(olympiadInfo.toString());
+            if (rowStyle != null) cell17.setCellStyle(rowStyle);
         }
 
-        // Авто-размер колонок
-        for (int i = 0; i < headers.length; i++) {
-            sheet.autoSizeColumn(i);
-        }
+        for (int i = 0; i < headers.length; i++) sheet.autoSizeColumn(i);
 
-        // Запись в byte array
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         workbook.write(baos);
         workbook.close();
-
         byte[] bytes = baos.toByteArray();
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=users_export_" + LocalDate.now() + ".xlsx")
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(new ByteArrayResource(bytes));
+    }
+
+    @GetMapping("/export-users")
+    @Operation(summary = "Export simplified user data to Excel with highlights", description = "Columns: Фамилия, Имя, Отчество, телефон, почта, класс/курс, выбранная Олимпиада. Users without selected olympiads highlighted.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Excel file downloaded")
+    })
+    public ResponseEntity<ByteArrayResource> exportUsersSimple() throws IOException {
+        List<ProfileResponse> users = userService.getAllUserProfiles();
+
+        Workbook workbook = new XSSFWorkbook();
+        Sheet sheet = workbook.createSheet("Simple Users");
+
+        CellStyle headerStyle = workbook.createCellStyle();
+        Font headerFont = workbook.createFont();
+        headerFont.setBold(true);
+        headerStyle.setFont(headerFont);
+        headerStyle.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
+        headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+        CellStyle highlightStyle = workbook.createCellStyle();
+        highlightStyle.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
+        highlightStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+        String[] headers = {"Фамилия", "Имя", "Отчество", "Телефон", "e-mail", "Класс/Курс", "Выбранная Олимпиада"};
+        Row headerRow = sheet.createRow(0);
+        for (int i = 0; i < headers.length; i++) {
+            Cell cell = headerRow.createCell(i);
+            cell.setCellValue(headers[i]);
+            cell.setCellStyle(headerStyle);
+        }
+
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd.MM.yy");
+        int rowNum = 1;
+        for (ProfileResponse user : users) {
+            Row row = sheet.createRow(rowNum++);
+            boolean hasOlympiads = user.getSelectedOlympiads() != null && !user.getSelectedOlympiads().isEmpty();
+
+            Cell cell0 = row.createCell(0);
+            cell0.setCellValue(user.getLastName() != null ? user.getLastName() : "");
+            Cell cell1 = row.createCell(1);
+            cell1.setCellValue(user.getFirstName() != null ? user.getFirstName() : "");
+            Cell cell2 = row.createCell(2);
+            cell2.setCellValue(user.getMiddleName() != null ? user.getMiddleName() : "");
+            Cell cell3 = row.createCell(3);
+            cell3.setCellValue(user.getPhoneNumber() != null ? user.getPhoneNumber() : "");
+            Cell cell4 = row.createCell(4);
+            cell4.setCellValue(user.getEmail() != null ? user.getEmail() : "");
+            Cell cell5 = row.createCell(5);
+            cell5.setCellValue(user.getClassCourse() != null ? user.getClassCourse() : "");
+
+            // Список выбранных олимпиад
+            StringBuilder olympiads = new StringBuilder();
+            if (hasOlympiads) {
+                for (OlympiadResponse olympiad : user.getSelectedOlympiads()) {
+                    olympiads.append(olympiad.getName());
+                    if (olympiad.getDate() != null) {
+                        olympiads.append(" (").append(olympiad.getDate().format(dateFormatter)).append(")");
+                    }
+                    olympiads.append("; ");
+                }
+                if (olympiads.length() > 2) olympiads.setLength(olympiads.length() - 2);
+            }
+            Cell cell6 = row.createCell(6);
+            cell6.setCellValue(olympiads.toString());
+
+            if (!hasOlympiads) {
+                cell0.setCellStyle(highlightStyle);
+                cell1.setCellStyle(highlightStyle);
+                cell2.setCellStyle(highlightStyle);
+                cell3.setCellStyle(highlightStyle);
+                cell4.setCellStyle(highlightStyle);
+                cell5.setCellStyle(highlightStyle);
+                cell6.setCellStyle(highlightStyle);
+            }
+        }
+
+        for (int i = 0; i < headers.length; i++) sheet.autoSizeColumn(i);
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        workbook.write(baos);
+        workbook.close();
+        byte[] bytes = baos.toByteArray();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=users_simple_export_" + LocalDate.now() + ".xlsx")
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .body(new ByteArrayResource(bytes));
     }

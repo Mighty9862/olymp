@@ -3,18 +3,12 @@ package org.example.config;
 import org.example.security.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.config.Customizer;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -34,46 +28,27 @@ public class SecurityConfig {
         this.corsConfigurationSource = corsConfigurationSource;
     }
 
-    /**
-     * Конфигурация безопасности для Swagger UI и OpenAPI.
-     * 
-     * Как получить доступ к Swagger UI:
-     * 1. Откройте https://олимпиада-мосу.рф/swagger-ui/index.html
-     * 2. Введите учетные данные:
-     *    - Логин: admin
-     *    - Пароль: 4t6gRgFc2k
-     */
-    @Bean
-    @Order(1)
-    public SecurityFilterChain swaggerSecurity(HttpSecurity http) throws Exception {
-        http
-                .securityMatcher(request -> 
-                    request.getRequestURI().contains("swagger-ui") ||
-                    request.getRequestURI().contains("api-docs") ||
-                    request.getRequestURI().contains("swagger-resources") ||
-                    request.getRequestURI().contains("webjars")
-                )
-                .csrf(csrf -> csrf.disable())
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
-                .httpBasic(Customizer.withDefaults());
-
-        return http.build();
-    }
-
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource)) // включаем CORS
+                .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        // Swagger UI и OpenAPI - доступ для всех
+                        .requestMatchers(
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/v3/api-docs/**",
+                                "/swagger-resources/**",
+                                "/webjars/**"
+                        ).permitAll()
+
                         // публичные эндпоинты аутентификации
                         .requestMatchers("/api/auth/**").permitAll()
 
                         // публичный доступ к ресурсам приложения
                         .requestMatchers("/api/carousel/**", "/uploads/**").permitAll()
-
                         .requestMatchers("/api/news/**").permitAll()
 
                         // Админ-эндоинты
@@ -95,15 +70,5 @@ public class SecurityConfig {
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
-    }
-
-    // In-memory пользователь для доступа к Swagger UI
-    @Bean
-    public UserDetailsService userDetailsService(PasswordEncoder passwordEncoder) {
-        UserDetails admin = User.withUsername("admin")
-                .password(passwordEncoder.encode("4t6gRgFc2k"))
-                .roles("ADMIN")
-                .build();
-        return new InMemoryUserDetailsManager(admin);
     }
 }
