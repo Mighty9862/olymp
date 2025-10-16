@@ -7,8 +7,8 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_DB: newsdb
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: admin
+      POSTGRES_USER: ${SPRING_DATASOURCE_USERNAME}
+      POSTGRES_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
       POSTGRES_HOST_AUTH_METHOD: md5
     command: 
       - "postgres"
@@ -39,23 +39,16 @@ services:
         condition: service_healthy
     environment:
       # Подключение к БД
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/newsdb
-      SPRING_DATASOURCE_USERNAME: admin
-      SPRING_DATASOURCE_PASSWORD: admin
-
-      # JPA настройки
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update
-      SPRING_JPA_SHOW_SQL: "true"
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
 
       # Секреты
-      JWT_SECRET: "ThisIsASecureSecretKeyForJWT1234567890123456789012345678901234567890"
-      AES_SECRET: "ThisIsASecureAESKey12345678901234"
+      JWT_SECRET: ${JWT_SECRET}
+      AES_SECRET: ${AES_SECRET}
 
       # Директория для загрузок
       UPLOAD_DIR: "/app/uploads"
-
-      # Порт приложения
-      SERVER_PORT: "8300"
       
       # SSL настройки
       SERVER_SSL_ENABLED: "true"
