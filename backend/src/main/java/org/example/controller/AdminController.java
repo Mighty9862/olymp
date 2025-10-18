@@ -21,7 +21,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -47,12 +48,25 @@ public class AdminController {
     }
 
     @GetMapping("/export-users-simple")
-    @Operation(summary = "Export user data to Excel with highlights", description = "Users without selected olympiads are highlighted in yellow")
+    @Operation(summary = "Export user data to Excel with highlights", description = "Users without selected olympiads are highlighted in yellow, duplicates in blue")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Excel file downloaded")
     })
     public ResponseEntity<ByteArrayResource> exportUsers() throws IOException {
         List<ProfileResponse> users = userService.getAllUserProfiles();
+
+        // Находим дублирующиеся ФИО
+        Map<String, List<ProfileResponse>> fioGroups = users.stream()
+                .collect(Collectors.groupingBy(user -> 
+                    (user.getLastName() != null ? user.getLastName() : "") + "|" +
+                    (user.getFirstName() != null ? user.getFirstName() : "") + "|" +
+                    (user.getMiddleName() != null ? user.getMiddleName() : "")
+                ));
+
+        Set<String> duplicateFios = fioGroups.entrySet().stream()
+                .filter(entry -> entry.getValue().size() > 1)
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toSet());
 
         Workbook workbook = new XSSFWorkbook();
         Sheet sheet = workbook.createSheet("Users");
@@ -68,6 +82,10 @@ public class AdminController {
         CellStyle highlightStyle = workbook.createCellStyle();
         highlightStyle.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
         highlightStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+        CellStyle duplicateStyle = workbook.createCellStyle();
+        duplicateStyle.setFillForegroundColor(IndexedColors.SKY_BLUE.getIndex());
+        duplicateStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
 
         // Заголовки
         Row headerRow = sheet.createRow(0);
@@ -92,7 +110,19 @@ public class AdminController {
             Row row = sheet.createRow(rowNum++);
 
             boolean hasOlympiads = user.getSelectedOlympiads() != null && !user.getSelectedOlympiads().isEmpty();
-            CellStyle rowStyle = hasOlympiads ? null : highlightStyle;
+            
+            // Проверяем, является ли запись дублирующейся
+            String userFioKey = (user.getLastName() != null ? user.getLastName() : "") + "|" +
+                               (user.getFirstName() != null ? user.getFirstName() : "") + "|" +
+                               (user.getMiddleName() != null ? user.getMiddleName() : "");
+            boolean isDuplicate = duplicateFios.contains(userFioKey);
+
+            CellStyle rowStyle = null;
+            if (isDuplicate) {
+                rowStyle = duplicateStyle;
+            } else if (!hasOlympiads) {
+                rowStyle = highlightStyle;
+            }
 
             // Дата регистрации
             Cell cell0 = row.createCell(0);
@@ -216,12 +246,25 @@ public class AdminController {
     }
 
     @GetMapping("/export-users")
-    @Operation(summary = "Export simplified user data to Excel with highlights", description = "Users without selected olympiads highlighted in yellow")
+    @Operation(summary = "Export simplified user data to Excel with highlights", description = "Users without selected olympiads highlighted in yellow, duplicates in blue")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Excel file downloaded")
     })
     public ResponseEntity<ByteArrayResource> exportUsersSimple() throws IOException {
         List<ProfileResponse> users = userService.getAllUserProfiles();
+
+        // Находим дублирующиеся ФИО
+        Map<String, List<ProfileResponse>> fioGroups = users.stream()
+                .collect(Collectors.groupingBy(user -> 
+                    (user.getLastName() != null ? user.getLastName() : "") + "|" +
+                    (user.getFirstName() != null ? user.getFirstName() : "") + "|" +
+                    (user.getMiddleName() != null ? user.getMiddleName() : "")
+                ));
+
+        Set<String> duplicateFios = fioGroups.entrySet().stream()
+                .filter(entry -> entry.getValue().size() > 1)
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toSet());
 
         Workbook workbook = new XSSFWorkbook();
         Sheet sheet = workbook.createSheet("Simple Users");
@@ -237,6 +280,10 @@ public class AdminController {
         highlightStyle.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
         highlightStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
 
+        CellStyle duplicateStyle = workbook.createCellStyle();
+        duplicateStyle.setFillForegroundColor(IndexedColors.SKY_BLUE.getIndex());
+        duplicateStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
         String[] headers = {"Дата", "№", "Фамилия", "Имя", "Отчество", "Телефон", "e-mail", "Класс/Курс", "Выбранная Олимпиада"};
         Row headerRow = sheet.createRow(0);
         for (int i = 0; i < headers.length; i++) {
@@ -250,7 +297,19 @@ public class AdminController {
         for (ProfileResponse user : users) {
             Row row = sheet.createRow(rowNum++);
             boolean hasOlympiads = user.getSelectedOlympiads() != null && !user.getSelectedOlympiads().isEmpty();
-            CellStyle rowStyle = hasOlympiads ? null : highlightStyle;
+            
+            // Проверяем, является ли запись дублирующейся
+            String userFioKey = (user.getLastName() != null ? user.getLastName() : "") + "|" +
+                               (user.getFirstName() != null ? user.getFirstName() : "") + "|" +
+                               (user.getMiddleName() != null ? user.getMiddleName() : "");
+            boolean isDuplicate = duplicateFios.contains(userFioKey);
+
+            CellStyle rowStyle = null;
+            if (isDuplicate) {
+                rowStyle = duplicateStyle;
+            } else if (!hasOlympiads) {
+                rowStyle = highlightStyle;
+            }
 
             // Дата
             Cell cell0 = row.createCell(0);
