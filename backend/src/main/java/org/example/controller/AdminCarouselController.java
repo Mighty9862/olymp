@@ -53,4 +53,17 @@ public class AdminCarouselController {
         imageService.deleteImage(filename);
         return ResponseEntity.noContent().build();
     }
+
+    @PutMapping("/order")
+    @Operation(summary = "Update image order", description = "Update the display order of carousel images")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Order updated successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid order data")
+    })
+    public ResponseEntity<Void> updateImageOrder(
+            @Parameter(description = "List of image URLs in new order")
+            @RequestBody List<String> newOrder) throws IOException {
+        imageService.updateImageOrder(newOrder);
+        return ResponseEntity.ok().build();
+    }
 }
