@@ -55,12 +55,12 @@ public class AdminController {
     public ResponseEntity<ByteArrayResource> exportUsers() throws IOException {
         List<ProfileResponse> users = userService.getAllUserProfiles();
 
-        // Находим дублирующиеся ФИО
+        // Находим дублирующиеся ФИО (нормализуем пробелы)
         Map<String, List<ProfileResponse>> fioGroups = users.stream()
                 .collect(Collectors.groupingBy(user -> 
-                    (user.getLastName() != null ? user.getLastName() : "") + "|" +
-                    (user.getFirstName() != null ? user.getFirstName() : "") + "|" +
-                    (user.getMiddleName() != null ? user.getMiddleName() : "")
+                    normalizeFio(user.getLastName()) + "|" +
+                    normalizeFio(user.getFirstName()) + "|" +
+                    normalizeFio(user.getMiddleName())
                 ));
 
         Set<String> duplicateFios = fioGroups.entrySet().stream()
@@ -111,10 +111,10 @@ public class AdminController {
 
             boolean hasOlympiads = user.getSelectedOlympiads() != null && !user.getSelectedOlympiads().isEmpty();
             
-            // Проверяем, является ли запись дублирующейся по ФИО
-            String userFioKey = (user.getLastName() != null ? user.getLastName() : "") + "|" +
-                               (user.getFirstName() != null ? user.getFirstName() : "") + "|" +
-                               (user.getMiddleName() != null ? user.getMiddleName() : "");
+            // Проверяем, является ли запись дублирующейся по ФИО (нормализуем пробелы)
+            String userFioKey = normalizeFio(user.getLastName()) + "|" +
+                               normalizeFio(user.getFirstName()) + "|" +
+                               normalizeFio(user.getMiddleName());
             boolean isDuplicate = duplicateFios.contains(userFioKey);
 
             CellStyle rowStyle = null;
@@ -253,12 +253,12 @@ public class AdminController {
     public ResponseEntity<ByteArrayResource> exportUsersSimple() throws IOException {
         List<ProfileResponse> users = userService.getAllUserProfiles();
 
-        // Находим дублирующиеся ФИО
+        // Находим дублирующиеся ФИО (нормализуем пробелы)
         Map<String, List<ProfileResponse>> fioGroups = users.stream()
                 .collect(Collectors.groupingBy(user -> 
-                    (user.getLastName() != null ? user.getLastName() : "") + "|" +
-                    (user.getFirstName() != null ? user.getFirstName() : "") + "|" +
-                    (user.getMiddleName() != null ? user.getMiddleName() : "")
+                    normalizeFio(user.getLastName()) + "|" +
+                    normalizeFio(user.getFirstName()) + "|" +
+                    normalizeFio(user.getMiddleName())
                 ));
 
         Set<String> duplicateFios = fioGroups.entrySet().stream()
@@ -298,10 +298,10 @@ public class AdminController {
             Row row = sheet.createRow(rowNum++);
             boolean hasOlympiads = user.getSelectedOlympiads() != null && !user.getSelectedOlympiads().isEmpty();
             
-            // Проверяем, является ли запись дублирующейся по ФИО
-            String userFioKey = (user.getLastName() != null ? user.getLastName() : "") + "|" +
-                               (user.getFirstName() != null ? user.getFirstName() : "") + "|" +
-                               (user.getMiddleName() != null ? user.getMiddleName() : "");
+            // Проверяем, является ли запись дублирующейся по ФИО (нормализуем пробелы)
+            String userFioKey = normalizeFio(user.getLastName()) + "|" +
+                               normalizeFio(user.getFirstName()) + "|" +
+                               normalizeFio(user.getMiddleName());
             boolean isDuplicate = duplicateFios.contains(userFioKey);
 
             CellStyle rowStyle = null;
@@ -376,5 +376,13 @@ public class AdminController {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=users_simple_export_" + LocalDate.now() + ".xlsx")
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .body(new ByteArrayResource(baos.toByteArray()));
+    }
+
+    // Вспомогательный метод для нормализации ФИО (удаление пробелов в начале и конце)
+    private String normalizeFio(String fio) {
+        if (fio == null) {
+            return "";
+        }
+        return fio.trim();
     }
 }
