@@ -48,7 +48,7 @@ public class AdminController {
     }
 
     @GetMapping("/export-users-simple")
-    @Operation(summary = "Export user data to Excel with highlights", description = "Users without selected olympiads are highlighted in yellow, duplicates in red")
+    @Operation(summary = "Export user data to Excel with highlights", description = "Users without selected olympiads are highlighted in red, duplicates in yellow")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Excel file downloaded")
     })
@@ -79,13 +79,15 @@ public class AdminController {
         headerStyle.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
         headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
 
-        CellStyle highlightStyle = workbook.createCellStyle();
-        highlightStyle.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
-        highlightStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-
+        // Желтый для дубликатов
         CellStyle duplicateStyle = workbook.createCellStyle();
-        duplicateStyle.setFillForegroundColor(IndexedColors.RED.getIndex());
+        duplicateStyle.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
         duplicateStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+        // Красный для не определившихся с олимпиадой
+        CellStyle highlightStyle = workbook.createCellStyle();
+        highlightStyle.setFillForegroundColor(IndexedColors.RED.getIndex());
+        highlightStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
 
         // Заголовки
         Row headerRow = sheet.createRow(0);
@@ -119,9 +121,9 @@ public class AdminController {
 
             CellStyle rowStyle = null;
             if (isDuplicate) {
-                rowStyle = duplicateStyle;
+                rowStyle = duplicateStyle; // Желтый для дубликатов
             } else if (!hasOlympiads) {
-                rowStyle = highlightStyle;
+                rowStyle = highlightStyle; // Красный для не определившихся с олимпиадой
             }
 
             // Дата регистрации
@@ -129,9 +131,9 @@ public class AdminController {
             cell0.setCellValue(user.getRegistrationDate() != null ? user.getRegistrationDate().format(dateFormatter) : LocalDate.now().format(dateFormatter));
             if (rowStyle != null) cell0.setCellStyle(rowStyle);
 
-            // Порядковый номер
+            // ID вместо порядкового номера
             Cell cell1 = row.createCell(1);
-            cell1.setCellValue(rowNum - 1);
+            cell1.setCellValue(user.getId() != null ? user.getId() : "");
             if (rowStyle != null) cell1.setCellStyle(rowStyle);
 
             // ФИО
@@ -246,7 +248,7 @@ public class AdminController {
     }
 
     @GetMapping("/export-users")
-    @Operation(summary = "Export simplified user data to Excel with highlights", description = "Users without selected olympiads highlighted in yellow, duplicates in red")
+    @Operation(summary = "Export simplified user data to Excel with highlights", description = "Users without selected olympiads highlighted in red, duplicates in yellow")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Excel file downloaded")
     })
@@ -276,13 +278,15 @@ public class AdminController {
         headerStyle.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
         headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
 
-        CellStyle highlightStyle = workbook.createCellStyle();
-        highlightStyle.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
-        highlightStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-
+        // Желтый для дубликатов
         CellStyle duplicateStyle = workbook.createCellStyle();
-        duplicateStyle.setFillForegroundColor(IndexedColors.RED.getIndex());
+        duplicateStyle.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
         duplicateStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+        // Красный для не определившихся с олимпиадой
+        CellStyle highlightStyle = workbook.createCellStyle();
+        highlightStyle.setFillForegroundColor(IndexedColors.RED.getIndex());
+        highlightStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
 
         String[] headers = {"Дата", "№", "Фамилия", "Имя", "Отчество", "Телефон", "e-mail", "Класс/Курс", "Выбранная Олимпиада"};
         Row headerRow = sheet.createRow(0);
@@ -306,9 +310,9 @@ public class AdminController {
 
             CellStyle rowStyle = null;
             if (isDuplicate) {
-                rowStyle = duplicateStyle;
+                rowStyle = duplicateStyle; // Желтый для дубликатов
             } else if (!hasOlympiads) {
-                rowStyle = highlightStyle;
+                rowStyle = highlightStyle; // Красный для не определившихся с олимпиадой
             }
 
             // Дата
@@ -316,9 +320,9 @@ public class AdminController {
             cell0.setCellValue(user.getRegistrationDate() != null ? user.getRegistrationDate().format(dateFormatter) : LocalDate.now().format(dateFormatter));
             if (rowStyle != null) cell0.setCellStyle(rowStyle);
 
-            // №
+            // ID вместо порядкового номера
             Cell cell1 = row.createCell(1);
-            cell1.setCellValue(rowNum - 1);
+            cell1.setCellValue(user.getId() != null ? user.getId() : "");
             if (rowStyle != null) cell1.setCellStyle(rowStyle);
 
             // ФИО
