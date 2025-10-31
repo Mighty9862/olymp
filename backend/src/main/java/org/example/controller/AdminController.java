@@ -133,7 +133,7 @@ public class AdminController {
 
             // ID вместо порядкового номера
             Cell cell1 = row.createCell(1);
-            cell1.setCellValue(user.getId() != null ? user.getId() : "");
+            cell1.setCellValue(user.getId() != null ? user.getId().toString() : "");
             if (rowStyle != null) cell1.setCellStyle(rowStyle);
 
             // ФИО
@@ -322,7 +322,7 @@ public class AdminController {
 
             // ID вместо порядкового номера
             Cell cell1 = row.createCell(1);
-            cell1.setCellValue(user.getId() != null ? user.getId() : "");
+            cell1.setCellValue(user.getId() != null ? user.getId().toString() : "");
             if (rowStyle != null) cell1.setCellStyle(rowStyle);
 
             // ФИО
