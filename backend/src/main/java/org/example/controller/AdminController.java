@@ -48,7 +48,7 @@ public class AdminController {
     }
 
     @GetMapping("/export-users-simple")
-    @Operation(summary = "Export user data to Excel with highlights", description = "Users without selected olympiads are highlighted in yellow, duplicates in blue")
+    @Operation(summary = "Export user data to Excel with highlights", description = "Users without selected olympiads are highlighted in yellow, duplicates in red")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Excel file downloaded")
     })
@@ -84,7 +84,7 @@ public class AdminController {
         highlightStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
 
         CellStyle duplicateStyle = workbook.createCellStyle();
-        duplicateStyle.setFillForegroundColor(IndexedColors.SKY_BLUE.getIndex());
+        duplicateStyle.setFillForegroundColor(IndexedColors.RED.getIndex());
         duplicateStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
 
         // Заголовки
@@ -111,7 +111,7 @@ public class AdminController {
 
             boolean hasOlympiads = user.getSelectedOlympiads() != null && !user.getSelectedOlympiads().isEmpty();
             
-            // Проверяем, является ли запись дублирующейся
+            // Проверяем, является ли запись дублирующейся по ФИО
             String userFioKey = (user.getLastName() != null ? user.getLastName() : "") + "|" +
                                (user.getFirstName() != null ? user.getFirstName() : "") + "|" +
                                (user.getMiddleName() != null ? user.getMiddleName() : "");
@@ -246,7 +246,7 @@ public class AdminController {
     }
 
     @GetMapping("/export-users")
-    @Operation(summary = "Export simplified user data to Excel with highlights", description = "Users without selected olympiads highlighted in yellow, duplicates in blue")
+    @Operation(summary = "Export simplified user data to Excel with highlights", description = "Users without selected olympiads highlighted in yellow, duplicates in red")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Excel file downloaded")
     })
@@ -281,7 +281,7 @@ public class AdminController {
         highlightStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
 
         CellStyle duplicateStyle = workbook.createCellStyle();
-        duplicateStyle.setFillForegroundColor(IndexedColors.SKY_BLUE.getIndex());
+        duplicateStyle.setFillForegroundColor(IndexedColors.RED.getIndex());
         duplicateStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
 
         String[] headers = {"Дата", "№", "Фамилия", "Имя", "Отчество", "Телефон", "e-mail", "Класс/Курс", "Выбранная Олимпиада"};
@@ -298,7 +298,7 @@ public class AdminController {
             Row row = sheet.createRow(rowNum++);
             boolean hasOlympiads = user.getSelectedOlympiads() != null && !user.getSelectedOlympiads().isEmpty();
             
-            // Проверяем, является ли запись дублирующейся
+            // Проверяем, является ли запись дублирующейся по ФИО
             String userFioKey = (user.getLastName() != null ? user.getLastName() : "") + "|" +
                                (user.getFirstName() != null ? user.getFirstName() : "") + "|" +
                                (user.getMiddleName() != null ? user.getMiddleName() : "");
