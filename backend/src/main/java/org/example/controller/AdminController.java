@@ -53,19 +53,19 @@ public class AdminController {
     }
 
     @GetMapping("/export-users-simple")
-    @Operation(summary = "Export user data to Excel with highlights", description = "Users without selected olympiads are highlighted in yellow, duplicates in red")
+    @Operation(summary = "Export user data to Excel with highlights", description = "Users without selected olympiads are highlighted in red, duplicates in yellow")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Excel file downloaded")
     })
     public ResponseEntity<ByteArrayResource> exportUsers() throws IOException {
         List<ProfileResponse> users = userService.getAllUserProfiles();
 
-        // Находим дублирующиеся ФИО
+        // Находим дублирующиеся ФИО (нормализуем пробелы)
         Map<String, List<ProfileResponse>> fioGroups = users.stream()
                 .collect(Collectors.groupingBy(user -> 
-                    (user.getLastName() != null ? user.getLastName() : "") + "|" +
-                    (user.getFirstName() != null ? user.getFirstName() : "") + "|" +
-                    (user.getMiddleName() != null ? user.getMiddleName() : "")
+                    normalizeFio(user.getLastName()) + "|" +
+                    normalizeFio(user.getFirstName()) + "|" +
+                    normalizeFio(user.getMiddleName())
                 ));
 
         Set<String> duplicateFios = fioGroups.entrySet().stream()
@@ -84,13 +84,15 @@ public class AdminController {
         headerStyle.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
         headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
 
-        CellStyle highlightStyle = workbook.createCellStyle();
-        highlightStyle.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
-        highlightStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-
+        // Желтый для дубликатов
         CellStyle duplicateStyle = workbook.createCellStyle();
-        duplicateStyle.setFillForegroundColor(IndexedColors.RED.getIndex());
+        duplicateStyle.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
         duplicateStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+        // Красный для не определившихся с олимпиадой
+        CellStyle highlightStyle = workbook.createCellStyle();
+        highlightStyle.setFillForegroundColor(IndexedColors.RED.getIndex());
+        highlightStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
 
         // Заголовки
         Row headerRow = sheet.createRow(0);
@@ -116,17 +118,17 @@ public class AdminController {
 
             boolean hasOlympiads = user.getSelectedOlympiads() != null && !user.getSelectedOlympiads().isEmpty();
             
-            // Проверяем, является ли запись дублирующейся по ФИО
-            String userFioKey = (user.getLastName() != null ? user.getLastName() : "") + "|" +
-                               (user.getFirstName() != null ? user.getFirstName() : "") + "|" +
-                               (user.getMiddleName() != null ? user.getMiddleName() : "");
+            // Проверяем, является ли запись дублирующейся по ФИО (нормализуем пробелы)
+            String userFioKey = normalizeFio(user.getLastName()) + "|" +
+                               normalizeFio(user.getFirstName()) + "|" +
+                               normalizeFio(user.getMiddleName());
             boolean isDuplicate = duplicateFios.contains(userFioKey);
 
             CellStyle rowStyle = null;
             if (isDuplicate) {
-                rowStyle = duplicateStyle;
+                rowStyle = duplicateStyle; // Желтый для дубликатов
             } else if (!hasOlympiads) {
-                rowStyle = highlightStyle;
+                rowStyle = highlightStyle; // Красный для не определившихся с олимпиадой
             }
 
             // Дата регистрации
@@ -134,9 +136,9 @@ public class AdminController {
             cell0.setCellValue(user.getRegistrationDate() != null ? user.getRegistrationDate().format(dateFormatter) : LocalDate.now().format(dateFormatter));
             if (rowStyle != null) cell0.setCellStyle(rowStyle);
 
-            // Порядковый номер
+            // ID вместо порядкового номера
             Cell cell1 = row.createCell(1);
-            cell1.setCellValue(rowNum - 1);
+            cell1.setCellValue(user.getId() != null ? user.getId().toString() : "");
             if (rowStyle != null) cell1.setCellStyle(rowStyle);
 
             // ФИО
@@ -251,19 +253,19 @@ public class AdminController {
     }
 
     @GetMapping("/export-users")
-    @Operation(summary = "Export simplified user data to Excel with highlights", description = "Users without selected olympiads highlighted in yellow, duplicates in red")
+    @Operation(summary = "Export simplified user data to Excel with highlights", description = "Users without selected olympiads highlighted in red, duplicates in yellow")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Excel file downloaded")
     })
     public ResponseEntity<ByteArrayResource> exportUsersSimple() throws IOException {
         List<ProfileResponse> users = userService.getAllUserProfiles();
 
-        // Находим дублирующиеся ФИО
+        // Находим дублирующиеся ФИО (нормализуем пробелы)
         Map<String, List<ProfileResponse>> fioGroups = users.stream()
                 .collect(Collectors.groupingBy(user -> 
-                    (user.getLastName() != null ? user.getLastName() : "") + "|" +
-                    (user.getFirstName() != null ? user.getFirstName() : "") + "|" +
-                    (user.getMiddleName() != null ? user.getMiddleName() : "")
+                    normalizeFio(user.getLastName()) + "|" +
+                    normalizeFio(user.getFirstName()) + "|" +
+                    normalizeFio(user.getMiddleName())
                 ));
 
         Set<String> duplicateFios = fioGroups.entrySet().stream()
@@ -281,13 +283,15 @@ public class AdminController {
         headerStyle.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
         headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
 
-        CellStyle highlightStyle = workbook.createCellStyle();
-        highlightStyle.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
-        highlightStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-
+        // Желтый для дубликатов
         CellStyle duplicateStyle = workbook.createCellStyle();
-        duplicateStyle.setFillForegroundColor(IndexedColors.RED.getIndex());
+        duplicateStyle.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
         duplicateStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+        // Красный для не определившихся с олимпиадой
+        CellStyle highlightStyle = workbook.createCellStyle();
+        highlightStyle.setFillForegroundColor(IndexedColors.RED.getIndex());
+        highlightStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
 
         String[] headers = {"Дата", "№", "Фамилия", "Имя", "Отчество", "Телефон", "e-mail", "Класс/Курс", "Выбранная Олимпиада"};
         Row headerRow = sheet.createRow(0);
@@ -303,17 +307,17 @@ public class AdminController {
             Row row = sheet.createRow(rowNum++);
             boolean hasOlympiads = user.getSelectedOlympiads() != null && !user.getSelectedOlympiads().isEmpty();
             
-            // Проверяем, является ли запись дублирующейся по ФИО
-            String userFioKey = (user.getLastName() != null ? user.getLastName() : "") + "|" +
-                               (user.getFirstName() != null ? user.getFirstName() : "") + "|" +
-                               (user.getMiddleName() != null ? user.getMiddleName() : "");
+            // Проверяем, является ли запись дублирующейся по ФИО (нормализуем пробелы)
+            String userFioKey = normalizeFio(user.getLastName()) + "|" +
+                               normalizeFio(user.getFirstName()) + "|" +
+                               normalizeFio(user.getMiddleName());
             boolean isDuplicate = duplicateFios.contains(userFioKey);
 
             CellStyle rowStyle = null;
             if (isDuplicate) {
-                rowStyle = duplicateStyle;
+                rowStyle = duplicateStyle; // Желтый для дубликатов
             } else if (!hasOlympiads) {
-                rowStyle = highlightStyle;
+                rowStyle = highlightStyle; // Красный для не определившихся с олимпиадой
             }
 
             // Дата
@@ -321,9 +325,9 @@ public class AdminController {
             cell0.setCellValue(user.getRegistrationDate() != null ? user.getRegistrationDate().format(dateFormatter) : LocalDate.now().format(dateFormatter));
             if (rowStyle != null) cell0.setCellStyle(rowStyle);
 
-            // №
+            // ID вместо порядкового номера
             Cell cell1 = row.createCell(1);
-            cell1.setCellValue(rowNum - 1);
+            cell1.setCellValue(user.getId() != null ? user.getId().toString() : "");
             if (rowStyle != null) cell1.setCellStyle(rowStyle);
 
             // ФИО
@@ -381,6 +385,14 @@ public class AdminController {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=users_simple_export_" + LocalDate.now() + ".xlsx")
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .body(new ByteArrayResource(baos.toByteArray()));
+    }
+
+    // Вспомогательный метод для нормализации ФИО (удаление пробелов в начале и конце)
+    private String normalizeFio(String fio) {
+        if (fio == null) {
+            return "";
+        }
+        return fio.trim();
     }
 
     @DeleteMapping("/user/{email}")
