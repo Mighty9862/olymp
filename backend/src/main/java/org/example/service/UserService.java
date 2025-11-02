@@ -197,4 +197,41 @@ public class UserService implements UserDetailsService {
                 .map(u -> getProfileByEmail(u.getEmail()))
                 .collect(Collectors.toList());
     }
+
+    public void deleteUserByEmail(String email) {
+        User user = findByEmail(email);
+        // Очищаем связи с олимпиадами перед удалением
+        user.getOlympiads().clear();
+        userRepository.save(user); // Сохраняем изменения перед удалением
+        userRepository.delete(user);
+    }
+
+    public User updateUserProfileByAdmin(String targetEmail, ProfileUpdateRequest request) {
+        User user = findByEmail(targetEmail);
+
+        // Проверяем уникальность email, если изменён
+        if (request.getEmail() != null && !request.getEmail().equals(targetEmail)) {
+            if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+                throw new EmailExistsException("Email already exists: " + request.getEmail());
+            }
+            user.setEmail(request.getEmail());
+        }
+
+        // Обновляем только переданные поля (с шифрованием персональных)
+        if (request.getLastName() != null) user.setLastName(encryptionUtil.encrypt(request.getLastName()));
+        if (request.getFirstName() != null) user.setFirstName(encryptionUtil.encrypt(request.getFirstName()));
+        if (request.getMiddleName() != null) user.setMiddleName(encryptionUtil.encrypt(request.getMiddleName()));
+        if (request.getBirthDate() != null) user.setBirthDate(request.getBirthDate());
+        if (request.getGender() != null) user.setGender(request.getGender());
+        if (request.getClassCourse() != null) user.setClassCourse(request.getClassCourse());
+        if (request.getEducationalInstitution() != null) user.setEducationalInstitution(request.getEducationalInstitution());
+        if (request.getInstitutionAddress() != null) user.setInstitutionAddress(encryptionUtil.encrypt(request.getInstitutionAddress()));
+        if (request.getPhoneNumber() != null) user.setPhoneNumber(encryptionUtil.encrypt(request.getPhoneNumber()));
+        if (request.getResidenceRegion() != null) user.setResidenceRegion(encryptionUtil.encrypt(request.getResidenceRegion()));
+        if (request.getResidenceSettlement() != null) user.setResidenceSettlement(encryptionUtil.encrypt(request.getResidenceSettlement()));
+        if (request.getSnils() != null) user.setSnils(encryptionUtil.encrypt(request.getSnils()));
+        if (request.getPostalAddress() != null) user.setPostalAddress(encryptionUtil.encrypt(request.getPostalAddress()));
+
+        return userRepository.save(user);
+    }
 }

@@ -2,7 +2,11 @@ package org.example.controller;
 
 import org.example.dto.ProfileResponse;
 import org.example.dto.OlympiadResponse;
+import org.example.dto.ProfileUpdateRequest;
+import org.example.entity.User;
 import org.example.enums.Role;
+import org.example.exception.EmailExistsException;
+import org.example.exception.UserNotFoundException;
 import org.example.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -23,6 +27,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
+
 
 @RestController
 @RequestMapping("/api/admin")
@@ -48,19 +53,19 @@ public class AdminController {
     }
 
     @GetMapping("/export-users-simple")
-    @Operation(summary = "Export user data to Excel with highlights", description = "Users without selected olympiads are highlighted in red, duplicates in yellow")
+    @Operation(summary = "Export user data to Excel with highlights", description = "Users without selected olympiads are highlighted in yellow, duplicates in red")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Excel file downloaded")
     })
     public ResponseEntity<ByteArrayResource> exportUsers() throws IOException {
         List<ProfileResponse> users = userService.getAllUserProfiles();
 
-        // Находим дублирующиеся ФИО (нормализуем пробелы)
+        // Находим дублирующиеся ФИО
         Map<String, List<ProfileResponse>> fioGroups = users.stream()
                 .collect(Collectors.groupingBy(user -> 
-                    normalizeFio(user.getLastName()) + "|" +
-                    normalizeFio(user.getFirstName()) + "|" +
-                    normalizeFio(user.getMiddleName())
+                    (user.getLastName() != null ? user.getLastName() : "") + "|" +
+                    (user.getFirstName() != null ? user.getFirstName() : "") + "|" +
+                    (user.getMiddleName() != null ? user.getMiddleName() : "")
                 ));
 
         Set<String> duplicateFios = fioGroups.entrySet().stream()
@@ -79,15 +84,13 @@ public class AdminController {
         headerStyle.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
         headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
 
-        // Желтый для дубликатов
-        CellStyle duplicateStyle = workbook.createCellStyle();
-        duplicateStyle.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
-        duplicateStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-
-        // Красный для не определившихся с олимпиадой
         CellStyle highlightStyle = workbook.createCellStyle();
-        highlightStyle.setFillForegroundColor(IndexedColors.RED.getIndex());
+        highlightStyle.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
         highlightStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+        CellStyle duplicateStyle = workbook.createCellStyle();
+        duplicateStyle.setFillForegroundColor(IndexedColors.RED.getIndex());
+        duplicateStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
 
         // Заголовки
         Row headerRow = sheet.createRow(0);
@@ -113,17 +116,17 @@ public class AdminController {
 
             boolean hasOlympiads = user.getSelectedOlympiads() != null && !user.getSelectedOlympiads().isEmpty();
             
-            // Проверяем, является ли запись дублирующейся по ФИО (нормализуем пробелы)
-            String userFioKey = normalizeFio(user.getLastName()) + "|" +
-                               normalizeFio(user.getFirstName()) + "|" +
-                               normalizeFio(user.getMiddleName());
+            // Проверяем, является ли запись дублирующейся по ФИО
+            String userFioKey = (user.getLastName() != null ? user.getLastName() : "") + "|" +
+                               (user.getFirstName() != null ? user.getFirstName() : "") + "|" +
+                               (user.getMiddleName() != null ? user.getMiddleName() : "");
             boolean isDuplicate = duplicateFios.contains(userFioKey);
 
             CellStyle rowStyle = null;
             if (isDuplicate) {
-                rowStyle = duplicateStyle; // Желтый для дубликатов
+                rowStyle = duplicateStyle;
             } else if (!hasOlympiads) {
-                rowStyle = highlightStyle; // Красный для не определившихся с олимпиадой
+                rowStyle = highlightStyle;
             }
 
             // Дата регистрации
@@ -131,9 +134,9 @@ public class AdminController {
             cell0.setCellValue(user.getRegistrationDate() != null ? user.getRegistrationDate().format(dateFormatter) : LocalDate.now().format(dateFormatter));
             if (rowStyle != null) cell0.setCellStyle(rowStyle);
 
-            // ID вместо порядкового номера
+            // Порядковый номер
             Cell cell1 = row.createCell(1);
-            cell1.setCellValue(user.getId() != null ? user.getId().toString() : "");
+            cell1.setCellValue(rowNum - 1);
             if (rowStyle != null) cell1.setCellStyle(rowStyle);
 
             // ФИО
@@ -248,19 +251,19 @@ public class AdminController {
     }
 
     @GetMapping("/export-users")
-    @Operation(summary = "Export simplified user data to Excel with highlights", description = "Users without selected olympiads highlighted in red, duplicates in yellow")
+    @Operation(summary = "Export simplified user data to Excel with highlights", description = "Users without selected olympiads highlighted in yellow, duplicates in red")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Excel file downloaded")
     })
     public ResponseEntity<ByteArrayResource> exportUsersSimple() throws IOException {
         List<ProfileResponse> users = userService.getAllUserProfiles();
 
-        // Находим дублирующиеся ФИО (нормализуем пробелы)
+        // Находим дублирующиеся ФИО
         Map<String, List<ProfileResponse>> fioGroups = users.stream()
                 .collect(Collectors.groupingBy(user -> 
-                    normalizeFio(user.getLastName()) + "|" +
-                    normalizeFio(user.getFirstName()) + "|" +
-                    normalizeFio(user.getMiddleName())
+                    (user.getLastName() != null ? user.getLastName() : "") + "|" +
+                    (user.getFirstName() != null ? user.getFirstName() : "") + "|" +
+                    (user.getMiddleName() != null ? user.getMiddleName() : "")
                 ));
 
         Set<String> duplicateFios = fioGroups.entrySet().stream()
@@ -278,15 +281,13 @@ public class AdminController {
         headerStyle.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
         headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
 
-        // Желтый для дубликатов
-        CellStyle duplicateStyle = workbook.createCellStyle();
-        duplicateStyle.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
-        duplicateStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-
-        // Красный для не определившихся с олимпиадой
         CellStyle highlightStyle = workbook.createCellStyle();
-        highlightStyle.setFillForegroundColor(IndexedColors.RED.getIndex());
+        highlightStyle.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
         highlightStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+        CellStyle duplicateStyle = workbook.createCellStyle();
+        duplicateStyle.setFillForegroundColor(IndexedColors.RED.getIndex());
+        duplicateStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
 
         String[] headers = {"Дата", "№", "Фамилия", "Имя", "Отчество", "Телефон", "e-mail", "Класс/Курс", "Выбранная Олимпиада"};
         Row headerRow = sheet.createRow(0);
@@ -302,17 +303,17 @@ public class AdminController {
             Row row = sheet.createRow(rowNum++);
             boolean hasOlympiads = user.getSelectedOlympiads() != null && !user.getSelectedOlympiads().isEmpty();
             
-            // Проверяем, является ли запись дублирующейся по ФИО (нормализуем пробелы)
-            String userFioKey = normalizeFio(user.getLastName()) + "|" +
-                               normalizeFio(user.getFirstName()) + "|" +
-                               normalizeFio(user.getMiddleName());
+            // Проверяем, является ли запись дублирующейся по ФИО
+            String userFioKey = (user.getLastName() != null ? user.getLastName() : "") + "|" +
+                               (user.getFirstName() != null ? user.getFirstName() : "") + "|" +
+                               (user.getMiddleName() != null ? user.getMiddleName() : "");
             boolean isDuplicate = duplicateFios.contains(userFioKey);
 
             CellStyle rowStyle = null;
             if (isDuplicate) {
-                rowStyle = duplicateStyle; // Желтый для дубликатов
+                rowStyle = duplicateStyle;
             } else if (!hasOlympiads) {
-                rowStyle = highlightStyle; // Красный для не определившихся с олимпиадой
+                rowStyle = highlightStyle;
             }
 
             // Дата
@@ -320,9 +321,9 @@ public class AdminController {
             cell0.setCellValue(user.getRegistrationDate() != null ? user.getRegistrationDate().format(dateFormatter) : LocalDate.now().format(dateFormatter));
             if (rowStyle != null) cell0.setCellStyle(rowStyle);
 
-            // ID вместо порядкового номера
+            // №
             Cell cell1 = row.createCell(1);
-            cell1.setCellValue(user.getId() != null ? user.getId().toString() : "");
+            cell1.setCellValue(rowNum - 1);
             if (rowStyle != null) cell1.setCellStyle(rowStyle);
 
             // ФИО
@@ -382,11 +383,54 @@ public class AdminController {
                 .body(new ByteArrayResource(baos.toByteArray()));
     }
 
-    // Вспомогательный метод для нормализации ФИО (удаление пробелов в начале и конце)
-    private String normalizeFio(String fio) {
-        if (fio == null) {
-            return "";
+    @DeleteMapping("/user/{email}")
+    @Operation(summary = "Delete user by email", description = "Permanently delete user and their olympiad selections")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "User deleted successfully"),
+        @ApiResponse(responseCode = "404", description = "User not found")
+    })
+    public ResponseEntity<String> deleteUser(@PathVariable String email) {
+        try {
+            userService.deleteUserByEmail(email);
+            return ResponseEntity.ok("User with email " + email + " deleted successfully");
+        } catch (UserNotFoundException e) {
+            return ResponseEntity.status(404).body(e.getMessage());
         }
-        return fio.trim();
+    }
+
+    @GetMapping("/user/{email}")
+    @Operation(summary = "Get user data by email", description = "Get complete decrypted user data for administration")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "User data retrieved"),
+        @ApiResponse(responseCode = "404", description = "User not found")
+    })
+    public ResponseEntity<ProfileResponse> getUserData(@PathVariable String email) {
+        try {
+            ProfileResponse userProfile = userService.getProfileByEmail(email);
+            return ResponseEntity.ok(userProfile);
+        } catch (UserNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @PutMapping("/user/{email}")
+    @Operation(summary = "Update user data by email", description = "Update user information with decrypted data")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "User data updated"),
+        @ApiResponse(responseCode = "404", description = "User not found"),
+        @ApiResponse(responseCode = "400", description = "Invalid data")
+    })
+    public ResponseEntity<ProfileResponse> updateUserData(
+            @PathVariable String email,
+            @RequestBody ProfileUpdateRequest updateRequest) {
+        try {
+            User updatedUser = userService.updateUserProfileByAdmin(email, updateRequest);
+            ProfileResponse updatedProfile = userService.getProfileByEmail(updatedUser.getEmail());
+            return ResponseEntity.ok(updatedProfile);
+        } catch (UserNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (EmailExistsException e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 }
