@@ -16,7 +16,7 @@ public class JwtUtil {
     @Value("${jwt.secret}")
     private String secretKey;
 
-    private static final long EXPIRATION_TIME = 2592000000; // 30 дней
+    private static final long EXPIRATION_TIME = 2592000000L; // 30 дней
 
     public String generateToken(String email, Role role) {
         SecretKey key = Keys.hmacShaKeyFor(secretKey.getBytes());
