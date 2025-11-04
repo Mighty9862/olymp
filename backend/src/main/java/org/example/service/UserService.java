@@ -1,5 +1,6 @@
 package org.example.service;
 
+import org.example.dto.AdminProfileResponse;
 import org.example.dto.OlympiadResponse;
 import org.example.dto.ProfileResponse;
 import org.example.dto.ProfileUpdateRequest;
@@ -133,6 +134,43 @@ public class UserService implements UserDetailsService {
             OlympiadResponse r = new OlympiadResponse();
             r.setName(o.getName());
             r.setDate(o.getDate());
+            r.setDescription(o.getDescription());
+            return r;
+        }).collect(Collectors.toList()));
+
+        return response;
+    }
+
+    // Новый метод для админского получения данных (совместим с форматом обновления)
+    public AdminProfileResponse getAdminProfileByEmail(String email) {
+        User user = findByEmail(email);
+
+        AdminProfileResponse response = new AdminProfileResponse();
+        response.setEmail(user.getEmail());
+
+        // Дешифруем персональные данные в том же формате, что принимает update
+        response.setLastName(encryptionUtil.decrypt(user.getLastName()));
+        response.setFirstName(encryptionUtil.decrypt(user.getFirstName()));
+        if (user.getMiddleName() != null) {
+            response.setMiddleName(encryptionUtil.decrypt(user.getMiddleName()));
+        }
+        response.setBirthDate(user.getBirthDate());
+        response.setGender(user.getGender());
+        response.setClassCourse(user.getClassCourse());
+        response.setEducationalInstitution(user.getEducationalInstitution());
+        response.setInstitutionAddress(encryptionUtil.decrypt(user.getInstitutionAddress()));
+        response.setPhoneNumber(encryptionUtil.decrypt(user.getPhoneNumber()));
+        response.setResidenceRegion(encryptionUtil.decrypt(user.getResidenceRegion()));
+        response.setResidenceSettlement(encryptionUtil.decrypt(user.getResidenceSettlement()));
+        response.setSnils(encryptionUtil.decrypt(user.getSnils()));
+        response.setPostalAddress(encryptionUtil.decrypt(user.getPostalAddress()));
+
+        // Добавляем олимпиады для информации (не для редактирования)
+        response.setSelectedOlympiads(user.getOlympiads().stream().map(o -> {
+            OlympiadResponse r = new OlympiadResponse();
+            r.setName(o.getName());
+            r.setDate(o.getDate());
+            r.setDescription(o.getDescription());
             return r;
         }).collect(Collectors.toList()));
 

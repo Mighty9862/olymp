@@ -1,5 +1,6 @@
 package org.example.controller;
 
+import org.example.dto.AdminProfileResponse;
 import org.example.dto.ProfileResponse;
 import org.example.dto.OlympiadResponse;
 import org.example.dto.ProfileUpdateRequest;
@@ -27,7 +28,6 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
-
 
 @RestController
 @RequestMapping("/api/admin")
@@ -411,14 +411,14 @@ public class AdminController {
     }
 
     @GetMapping("/user/{email}")
-    @Operation(summary = "Get user data by email", description = "Get complete decrypted user data for administration")
+    @Operation(summary = "Get user data by email", description = "Get user data in format compatible with update request")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "User data retrieved"),
         @ApiResponse(responseCode = "404", description = "User not found")
     })
-    public ResponseEntity<ProfileResponse> getUserData(@PathVariable String email) {
+    public ResponseEntity<AdminProfileResponse> getUserData(@PathVariable String email) {
         try {
-            ProfileResponse userProfile = userService.getProfileByEmail(email);
+            AdminProfileResponse userProfile = userService.getAdminProfileByEmail(email);
             return ResponseEntity.ok(userProfile);
         } catch (UserNotFoundException e) {
             return ResponseEntity.notFound().build();
@@ -426,18 +426,18 @@ public class AdminController {
     }
 
     @PutMapping("/user/{email}")
-    @Operation(summary = "Update user data by email", description = "Update user information with decrypted data")
+    @Operation(summary = "Update user data by email", description = "Update user information including email change")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "User data updated"),
         @ApiResponse(responseCode = "404", description = "User not found"),
-        @ApiResponse(responseCode = "400", description = "Invalid data")
+        @ApiResponse(responseCode = "400", description = "Invalid data or email exists")
     })
-    public ResponseEntity<ProfileResponse> updateUserData(
+    public ResponseEntity<AdminProfileResponse> updateUserData(
             @PathVariable String email,
             @RequestBody ProfileUpdateRequest updateRequest) {
         try {
             User updatedUser = userService.updateUserProfileByAdmin(email, updateRequest);
-            ProfileResponse updatedProfile = userService.getProfileByEmail(updatedUser.getEmail());
+            AdminProfileResponse updatedProfile = userService.getAdminProfileByEmail(updatedUser.getEmail());
             return ResponseEntity.ok(updatedProfile);
         } catch (UserNotFoundException e) {
             return ResponseEntity.notFound().build();
