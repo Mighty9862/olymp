@@ -52,7 +52,7 @@ public class AdminController {
         return ResponseEntity.ok("ADMIN role removed from " + email);
     }
 
-    @GetMapping("/export-users-simple")
+    @GetMapping("/export-users")
     @Operation(summary = "Export user data to Excel with highlights", description = "Users without selected olympiads are highlighted in red, duplicates in yellow")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Excel file downloaded")
@@ -252,7 +252,7 @@ public class AdminController {
                 .body(new ByteArrayResource(bytes));
     }
 
-    @GetMapping("/export-users")
+    @GetMapping("/export-users-simple")
     @Operation(summary = "Export simplified user data to Excel with highlights", description = "Users without selected olympiads highlighted in red, duplicates in yellow")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Excel file downloaded")
