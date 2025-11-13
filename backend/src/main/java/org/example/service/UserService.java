@@ -31,11 +31,13 @@ public class UserService implements UserDetailsService {
     private final EncryptionUtil encryptionUtil;
     private final OlympiadService olympiadService;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    private final PasswordResetTokenRepository passwordResetTokenRepository;
 
-    public UserService(UserRepository userRepository, EncryptionUtil encryptionUtil, OlympiadService olympiadService) {
+    public UserService(UserRepository userRepository, EncryptionUtil encryptionUtil, OlympiadService olympiadService, PasswordResetTokenRepository passwordResetTokenRepository) {
         this.userRepository = userRepository;
         this.encryptionUtil = encryptionUtil;
         this.olympiadService = olympiadService;
+        this.passwordResetTokenRepository = passwordResetTokenRepository;
     }
 
     public User register(RegisterRequest request) {
