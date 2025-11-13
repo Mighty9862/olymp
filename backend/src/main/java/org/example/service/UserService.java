@@ -238,9 +238,15 @@ public class UserService implements UserDetailsService {
 
     public void deleteUserByEmail(String email) {
         User user = findByEmail(email);
-        // Очищаем связи с олимпиадами перед удалением
+
+        // Помечаем все токены пользователя как использованные
+        passwordResetTokenRepository.markAllTokensAsUsed(user);
+
+        // Очищаем связи с олимпиадами
         user.getOlympiads().clear();
-        userRepository.save(user); // Сохраняем изменения перед удалением
+        userRepository.save(user);
+
+        // Удаляем пользователя
         userRepository.delete(user);
     }
 
