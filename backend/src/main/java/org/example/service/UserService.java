@@ -11,6 +11,7 @@ import org.example.enums.Role;
 import org.example.exception.EmailExistsException;
 import org.example.exception.OlympiadNotFoundException;
 import org.example.exception.UserNotFoundException;
+import org.example.repository.PasswordResetTokenRepository;
 import org.example.repository.UserRepository;
 import org.example.util.EncryptionUtil;
 import org.springframework.security.core.userdetails.UserDetails;
