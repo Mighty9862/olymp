@@ -2,6 +2,7 @@ import { Route, Routes } from "react-router-dom";
 import Home from "./pages/Home/Home";
 import Registration from "./pages/Registration";
 import Login from "./pages/Login/Login";
+import ResetPassword from "./pages/ResetPassword";
 // import Rankings from "./pages/Rankings";
 import Profile from "./pages/Profile";
 import Developers from "./pages/Developers";
@@ -22,6 +23,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/registration" element={<Registration />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/profile" element={<Profile />} />
         {/* <Route path="/ranking" element={<Rankings />} /> */}
         {/* <Route path="/qualification" element={<QualifyingResults />} /> */}

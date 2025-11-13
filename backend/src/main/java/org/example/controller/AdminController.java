@@ -58,7 +58,9 @@ public class AdminController {
             @ApiResponse(responseCode = "200", description = "Excel file downloaded")
     })
     public ResponseEntity<ByteArrayResource> exportUsers() throws IOException {
-        List<ProfileResponse> users = userService.getAllUserProfiles();
+        List<ProfileResponse> users = userService.getAllUserProfiles().stream()
+        .sorted(java.util.Comparator.comparing(ProfileResponse::getId))
+        .toList();
 
         // Находим дублирующиеся ФИО (нормализуем пробелы)
         Map<String, List<ProfileResponse>> fioGroups = users.stream()
@@ -100,7 +102,7 @@ public class AdminController {
                 "Дата", "№", "Фамилия", "Имя", "Отчество", "Дата рождения", "Пол",
                 "СНИЛС", "Место жительства", "Тип населенного пункта", "Номер телефона", "e-mail",
                 "Регион образовательной организации", "Наименование образовательной организации",
-                "Класс/Курс", "Логин", "Пароль", "Выбранные олимпиады"
+                "Класс/Курс", "Выбранные олимпиады"
         };
 
         for (int i = 0; i < headers.length; i++) {
@@ -212,18 +214,9 @@ public class AdminController {
             cell14.setCellValue(user.getClassCourse() != null ? user.getClassCourse() : "");
             if (rowStyle != null) cell14.setCellStyle(rowStyle);
 
-            // Логин
-            Cell cell15 = row.createCell(15);
-            cell15.setCellValue(user.getEmail() != null ? user.getEmail() : "");
-            if (rowStyle != null) cell15.setCellStyle(rowStyle);
-
-            // Пароль
-            Cell cell16 = row.createCell(16);
-            cell16.setCellValue("*");
-            if (rowStyle != null) cell16.setCellStyle(rowStyle);
 
             // Выбранные олимпиады
-            Cell cell17 = row.createCell(17);
+            Cell cell17 = row.createCell(15);
             StringBuilder olympiadInfo = new StringBuilder();
             if (hasOlympiads) {
                 for (OlympiadResponse olympiad : user.getSelectedOlympiads()) {
@@ -258,7 +251,9 @@ public class AdminController {
             @ApiResponse(responseCode = "200", description = "Excel file downloaded")
     })
     public ResponseEntity<ByteArrayResource> exportUsersSimple() throws IOException {
-        List<ProfileResponse> users = userService.getAllUserProfiles();
+        List<ProfileResponse> users = userService.getAllUserProfiles().stream()
+        .sorted(java.util.Comparator.comparing(ProfileResponse::getId))
+        .toList();
 
         // Находим дублирующиеся ФИО (нормализуем пробелы)
         Map<String, List<ProfileResponse>> fioGroups = users.stream()
