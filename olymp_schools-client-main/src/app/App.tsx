@@ -2,7 +2,6 @@ import { Route, Routes } from "react-router-dom";
 import Home from "./pages/Home/Home";
 import Registration from "./pages/Registration";
 import Login from "./pages/Login/Login";
-import ResetPassword from "./pages/ResetPassword";
 // import Rankings from "./pages/Rankings";
 import Profile from "./pages/Profile";
 import Developers from "./pages/Developers";
@@ -15,6 +14,7 @@ import Partners from "./pages/Partners";
 import Archive from "./pages/Archive";
 import NotFound from "./pages/NotFound";
 import OlympiadProfile from "./pages/OlympiadProfile";
+import ResetPassword from "./pages/ResetPassword";
 
 function App() {
   return (
@@ -23,7 +23,6 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/registration" element={<Registration />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/profile" element={<Profile />} />
         {/* <Route path="/ranking" element={<Rankings />} /> */}
         {/* <Route path="/qualification" element={<QualifyingResults />} /> */}
@@ -33,6 +32,7 @@ function App() {
         <Route path="/consent" element={<Consent />} />
         <Route path="/partners" element={<Partners />} />
         <Route path="/admin" element={<Admin />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/archive" element={<Archive />} />
         <Route path="/olympiad" element={<OlympiadProfile />} />
         <Route path="/*" element={<NotFound />} />
